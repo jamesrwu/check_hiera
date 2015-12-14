@@ -6,17 +6,19 @@ redundant key/values being in places you did not expect. This tool helps you mak
 
 It parses your hiera.yaml to discover your hierarchy and will output keys and their location in the order of highest to lowest priority as defined in the hiera.yaml.
 
+You can also use this to output all your hiera keys into a single file that you can then edit, and use as an input to regenerate a new hiera structure.
+
 #### Requirements
-1. Python3+
+1. Python3+ (python2 should work but is untested)
 2. PyYaml (http://pyyaml.org)
 3. Puppet repository with hiera using yaml
 
 
 #### Example
 ```bash
-usage: check_hiera.py [-h] [-k KEY] hiera root_path
+usage: check_hiera.py read [-h] [-k KEY] [-o OUTPUT] hiera root_path
 
-./check_hiera.py puppet/hiera.yaml puppet/hiera/
+./check_hiera.py read puppet/hiera.yaml puppet/hiera/
 
 keyA:
 {'./environment/prod.yaml': 'running',
@@ -38,4 +40,8 @@ packages:
                              'tcpdump'],
  './environment/qa.yaml': ['kvm'],
  './defaults.yaml': ['ssh-server', 'screen', 'puppet', 'curl']}
+
+
+(If you toggle the -o yaml output, it will output into a yaml file)
+
  ```
