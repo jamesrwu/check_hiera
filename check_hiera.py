@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from builtins import input
 from collections import OrderedDict
 import argparse
 import os
@@ -74,10 +75,9 @@ def output_yaml_key(dictionary, yaml_key, hierarchy_regex):
     """
     print("%s:" % yaml_key)
     if len(dictionary[yaml_key]) > 1:
-        ordered_dict = OrderedDict()
-        ordered_keys = sorted(dictionary[yaml_key].keys(), key=lambda x: get_regex_order(x, hierarchy_regex))
-        for key in ordered_keys:
-            ordered_dict[key] = dictionary[yaml_key][key]
+        # convert all 2nd level dict into ordereddict keys so that we can maintain hierarchy order awareness
+        for yaml_key in global_dict.keys():
+            ordered_dict = OrderedDict(sorted(global_dict[yaml_key].items(), key=lambda x: get_regex_order(x[0], hierarchy_regex)))
         pp.pprint(ordered_dict)
     else:
         pp.pprint(dictionary[yaml_key])
@@ -104,6 +104,8 @@ if __name__ == "__main__":
 
         # format: {hiera_key: {hostname: value}}
         global_dict = {}
+
+        # load all keys in all files to global dict
         for key in reversed(hierarchy_dict):
             for filename in hierarchy_dict[key]:
                 with open(filename, 'r') as yaml_file:
@@ -123,16 +125,22 @@ if __name__ == "__main__":
                 print("File generated at %s" % args.output)
         else:
             if args.key is not None:
-                output_yaml_key(global_dict, args.key, hierarchy_regex)
+                if args.key in global_dict:
+                    output_yaml_key(global_dict, args.key, hierarchy_regex)
+                else:
+                    sys.exit('Key does not exist')
             else:
                 for yaml_key in sorted(global_dict.keys()):
                     output_yaml_key(global_dict, yaml_key, hierarchy_regex)
 
     elif args.action == 'generate':
-        if os.path.exists(args.root_path):
-            sys.exit("Root path must not exist!")
-        else:
+        try:
             os.makedirs(args.root_path)
+        except FileExistsError:
+            bypass = input("Path already exists, continue and overwrite existing files? [Y|N] ").lower().strip()
+            if bypass != 'y':
+                sys.exit('Aborted')
+        finally:
             os.chdir(args.root_path)
             with open(args.input, 'r') as input_file:
                 global_dict = yaml.load(input_file)

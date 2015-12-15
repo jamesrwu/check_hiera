@@ -45,3 +45,6 @@ packages:
 (If you toggle the -o yaml output, it will output into a yaml file)
 
  ```
+
+#### Known bug(s):
+1. Output of master.yaml does not maintain hierarchy ordering vs. regular output. This is a known issue in pyyaml and was marked as won't fix (http://pyyaml.org/ticket/29). 
