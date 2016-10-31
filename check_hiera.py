@@ -16,14 +16,13 @@ def get_args():
     parser = argparse.ArgumentParser(description='check_hiera.py')
     subparsers = parser.add_subparsers(help='Action', dest='action')
 
-    read = subparsers.add_parser('read', help='Read existing hiera structure')
+    read = subparsers.add_parser('read', help='Read existing hiera tree and generate a master.yaml')
     read.add_argument('hiera', help='Hiera.yaml file path')
     read.add_argument('root_path', help='Root directory of hiera hierarchy folder')
     read.add_argument('-k', '--key', help='Print only optional key value')
     read.add_argument('-o', '--output', help='Output the existing hiera structure into a yaml file')
 
-    generate = subparsers.add_parser('generate', help='Generate existing structure defined in yaml file into a hiera '
-                                                      'tree')
+    generate = subparsers.add_parser('generate', help='Rebuild hiera tree as defined in a master.yaml file tree')
     generate.add_argument('input', help='Path of existing structure in yaml file')
     generate.add_argument('root_path', help='Root directory of hiera hierarchy folder. Must not exist.')
     return parser.parse_args()
@@ -39,11 +38,15 @@ def get_filepath_regex(hierarchy):
     """
     Returns matching list of regex which will be used to match file path is in which hierarchy
     """
+    #Site specific hardcoded pattern(s) that we want to fix first
+    fixed_pattern = ('\%\{environment\}/\%\{companyprefix\}','hiera/ca')
+
     find_pattern = "\%\{\w*\}"
     replace_pattern = "[\w[\.]*]*"
     regex_list = []
     for item in hierarchy:
-        pattern = re.sub(find_pattern, replace_pattern, item) + '.yaml$'
+        f_pattern = re.sub(fixed_pattern[0], fixed_pattern[1], item)
+        pattern = re.sub(find_pattern, replace_pattern, f_pattern) + '.yaml$'
         regex_list.append(pattern)
     return regex_list
 
@@ -121,7 +124,7 @@ if __name__ == "__main__":
 
         if args.output:
             with open(args.output, 'w') as outfile:
-                outfile.write(yaml.dump(global_dict, default_flow_style=False))
+                outfile.write(yaml.dump(global_dict, default_flow_style=False, width=120))
                 print("File generated at %s" % args.output)
         else:
             if args.key is not None:
@@ -160,5 +163,5 @@ if __name__ == "__main__":
                     pass
                 finally:
                     with open(yaml_file, 'w') as outfile:
-                        outfile.write(yaml.dump(yaml_files[yaml_file], default_flow_style=False, indent=4))
+                        outfile.write(yaml.dump(yaml_files[yaml_file], default_flow_style=False, width=120, indent=4))
             print("Generated hiera structure at %s" % args.root_path)

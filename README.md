@@ -46,5 +46,14 @@ packages:
 
  ```
 
+#### Example 2
+```bash
+# To generate a master.yaml:
+./check_hiera.py read -o ~/ecg-puppet/hiera/ca/master.yaml ~/ecg-puppet/hiera/ca/hiera.yaml ~/ecg-puppet
+
+# To rebuild the hiera tree from a modified master.yaml:
+./check_hiera.py generate ~/ecg-puppet/hiera/ca/master.yaml ~/ecg-puppet
+```
+
 #### Known bug(s):
-1. Output of master.yaml does not maintain hierarchy ordering vs. regular output. This is a known issue in pyyaml and was marked as won't fix (http://pyyaml.org/ticket/29). 
+1. Output of master.yaml does not maintain hierarchy ordering vs. regular output. This is a known issue in pyyaml and was marked as won't fix (http://pyyaml.org/ticket/29).
